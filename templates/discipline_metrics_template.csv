@@ -1,0 +1,2 @@
+trace_id,discipline_score,economic_alignment,hidden_state_influence,avg_reward,stability_rating
+trace_001,0.85,0.92,0.12,45.6,high

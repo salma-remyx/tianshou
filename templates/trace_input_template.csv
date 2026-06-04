@@ -1,0 +1,4 @@
+trace_id,step,action,reward,competitor_present,rule_violation,hidden_state_flag
+1001,1,move_forward,0.85,false,false,false
+1001,2,turn_left,0.60,true,false,true
+1002,1,pick_up,1.20,false,true,false

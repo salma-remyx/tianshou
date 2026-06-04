@@ -1,0 +1,8 @@
+# Python dependencies for Trace-Based Discipline Evaluation Pipeline
+# See https://arxiv.org/abs/2605.18580v1 for discipline stability evaluation methodology
+
+pandas==2.1.4
+openpyxl==3.1.2
+numpy==1.26.3
+pytest==8.0.2
+pyyaml==6.0.1

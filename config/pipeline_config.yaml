@@ -1,0 +1,84 @@
+# config/pipeline_config.yaml
+pipeline:
+  name: "Trace-Based Discipline Evaluation Pipeline"
+  logging:
+    level: "INFO"                   # DEBUG, INFO, WARNING, ERROR
+    file: "logs/pipeline.log"
+  data_root: "."                    # relative base for all paths below
+
+  stages:
+    ingestion:
+      input: "log/traces_raw/raw_traces.json"
+      output: "processed/traces_parsed.csv"
+      validation:
+        input_check:
+          max_null_fraction: 0.0     # no nulls allowed in raw data
+          allowed_schema:
+            - timestamp
+            - agent_id
+            - observation
+            - action
+            - reward
+            - hidden_state
+
+    parsing:
+      input: "processed/traces_parsed.csv"
+      output: "processed/traces_features.csv"
+      validation:
+        output_check:
+          max_null_fraction: 0.02
+          required_columns:
+            - timestamp
+            - action_type
+            - competitor_present
+            - outcome_indicator
+
+    feature_extraction:
+      input: "processed/traces_features.csv"
+      output: "processed/features_vectors.parquet"
+      validation:
+        output_check:
+          max_null_fraction: 0.01
+          numeric_ranges:
+            action_consistency: [0.0, 1.0]
+            deviation_metric: [-10.0, 10.0]
+
+    discipline_computation:
+      input: "processed/features_vectors.parquet"
+      output: "processed/discipline_metrics.csv"
+      validation:
+        output_check:
+          max_null_fraction: 0.05
+          non_negative_columns:
+            - behavioral_consistency
+            - economic_compliance
+          allowed_range:
+            hidden_misalignment_score: [0.0, 1.0]
+
+    aggregation:
+      input: "processed/discipline_metrics.csv"
+      output: "output/discipline_summary.csv"
+      validation:
+        output_check:
+          min_rows: 10
+          cross_validation_folds: 5
+          numeric_ranges:
+            mean_discipline: [0.0, 1.0]
+
+    validation:
+      input: "output/discipline_summary.csv"
+      output: "reports/validation_report.json"
+      thresholds:
+        overall_null_fraction: 0.05
+        schema_conformance: true
+        outlier_z_score: 3.0
+
+  # Global validation defaults applied unless overridden per stage
+  defaults:
+    validation:
+      input_check:
+        allow_empty: false
+        skip_on_failure: false
+      output_check:
+        allow_duplicates: false
+        max_null_fraction: 0.1
